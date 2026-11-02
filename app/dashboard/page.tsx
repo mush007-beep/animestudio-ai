@@ -8,8 +8,8 @@ export default function DashboardPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Job Queue</h1>
-        <Link href="/scenes" className="btn text-sm">
-          + New scene → queue
+        <Link href="/create" className="btn text-sm">
+          + Create → queue
         </Link>
       </div>
       <JobList />
