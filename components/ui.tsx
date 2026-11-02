@@ -1,4 +1,4 @@
-import type { JobStatus } from "@/lib/types";
+import type { JobStatus, JobModel, JobDuration, JobAspect } from "@/lib/types";
 
 export function StatusBadge({ status }: { status: JobStatus }) {
   const styles: Record<JobStatus, string> = {
@@ -29,6 +29,32 @@ export function TypeTag({ type }: { type: string }) {
     <span className="inline-block px-2 py-0.5 rounded text-xs bg-neutral-700/40 text-neutral-300 border border-line">
       {type === "image-to-video" ? "🖼→🎞 image-to-video" : "✏️→🎞 text-to-video"}
     </span>
+  );
+}
+
+export function ModelTag({ model }: { model: JobModel | null | undefined }) {
+  if (!model) return null;
+  return (
+    <span className="inline-block px-2 py-0.5 rounded text-xs bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+      {model === "ltx" ? "⚡ LTX fast" : "💎 Wan 2.1"}
+    </span>
+  );
+}
+
+export function SpecTag({ duration, aspect }: { duration?: JobDuration | null; aspect?: JobAspect | null }) {
+  return (
+    <>
+      {duration != null && (
+        <span className="inline-block px-2 py-0.5 rounded text-xs bg-neutral-700/40 text-neutral-300 border border-line">
+          ⏱ {duration}s
+        </span>
+      )}
+      {aspect && (
+        <span className="inline-block px-2 py-0.5 rounded text-xs bg-neutral-700/40 text-neutral-300 border border-line">
+          {aspect}
+        </span>
+      )}
+    </>
   );
 }
 
