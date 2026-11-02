@@ -1,6 +1,14 @@
 export type JobStatus = "queued" | "running" | "done" | "failed";
 export type VideoStyle = "anime" | "cinematic";
 export type JobType = "text-to-video" | "image-to-video";
+export type JobModel = "ltx" | "wan21";
+export type JobDuration = 4 | 8;
+export type JobAspect = "16:9" | "9:16" | "1:1";
+
+export const MODEL_LABELS: Record<JobModel, string> = {
+  ltx: "LTX-Video (fast)",
+  wan21: "Wan 2.1 (quality)",
+};
 
 export interface Character {
   id: string;
@@ -35,6 +43,14 @@ export interface Job {
   /** localStorage/IndexedDB video entry id once an MP4 is attached */
   video_entry_id: string | null;
   error: string | null;
+  /** start-frame thumbnail (data-URL) for image-to-video jobs */
+  start_frame_url?: string | null;
+  /** end-frame thumbnail (data-URL), optional */
+  end_frame_url?: string | null;
+  model?: JobModel | null;
+  duration?: JobDuration | null;
+  aspect?: JobAspect | null;
+  character_id?: string | null;
   created_at: string;
   updated_at: string;
 }
