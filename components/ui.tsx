@@ -3,6 +3,7 @@ import type { JobStatus, JobModel, JobDuration, JobAspect } from "@/lib/types";
 export function StatusBadge({ status }: { status: JobStatus }) {
   const styles: Record<JobStatus, string> = {
     queued: "bg-yellow-500/15 text-yellow-300 border-yellow-500/30",
+    rendering: "bg-indigo-500/15 text-indigo-300 border-indigo-500/30",
     running: "bg-blue-500/15 text-blue-300 border-blue-500/30",
     done: "bg-green-500/15 text-green-300 border-green-500/30",
     failed: "bg-red-500/15 text-red-300 border-red-500/30",

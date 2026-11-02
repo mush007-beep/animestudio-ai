@@ -2,33 +2,12 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import type { Job, VideoEntry } from "@/lib/types";
+import type { Job, VideoEntry, WorkerDef } from "@/lib/types";
 import { KEYS, useCollection } from "@/lib/store";
 import { idbSet, videoBlobKey } from "@/lib/idb";
+import { workerPromptBlock, seedWorkers } from "@/lib/workers";
 import { StatusBadge, StyleTag, TypeTag, ModelTag, SpecTag, timeAgo } from "./ui";
-
-/** Escape a prompt for pasting into the worker notebooks' Python config cell. */
-function pyString(s: string): string {
-  return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n");
-}
-
-/**
- * The exact block the Colab / Kaggle / Lightning worker notebooks accept
- * (standalone config cell): PROMPT / STYLE / TYPE / MODEL / DURATION / ASPECT.
- */
-function workerPromptBlock(job: Job): string {
-  return [
-    `PROMPT = "${pyString(job.prompt)}"`,
-    `STYLE = "${job.style}"`,
-    `TYPE = "${job.type}"`,
-    `MODEL = "${job.model ?? "ltx"}"`,
-    `DURATION = ${job.duration ?? 8}`,
-    `ASPECT = "${job.aspect ?? "16:9"}"`,
-    ...(job.type === "image-to-video"
-      ? ["# start frame: upload the job's thumbnail in the notebook when it asks"]
-      : []),
-  ].join("\n");
-}
+import WorkerAssign from "./WorkerAssign";
 
 /**
  * Job queue backed by localStorage. In the static build there is no server:
@@ -38,8 +17,11 @@ function workerPromptBlock(job: Job): string {
  *   adds it to the Library (MP4 bytes go to IndexedDB).
  */
 export default function JobList() {
+  // Client-only, idempotent — seeds the 3 worker defs before collections read localStorage.
+  seedWorkers();
   const jobs = useCollection<Job>(KEYS.jobs);
   const videos = useCollection<VideoEntry>(KEYS.videos);
+  const workers = useCollection<WorkerDef>(KEYS.workers);
   const [filter, setFilter] = useState("all");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -50,6 +32,7 @@ export default function JobList() {
   const visible = filter === "all" ? list : list.filter((j) => j.status === filter);
   const counts = {
     queued: list.filter((j) => j.status === "queued").length,
+    rendering: list.filter((j) => j.status === "rendering").length,
     running: list.filter((j) => j.status === "running").length,
     done: list.filter((j) => j.status === "done").length,
     failed: list.filter((j) => j.status === "failed").length,
@@ -102,7 +85,7 @@ export default function JobList() {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4 text-sm">
-        {(["all", "queued", "running", "done", "failed"] as const).map((f) => (
+        {(["all", "queued", "rendering", "running", "done", "failed"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -151,11 +134,12 @@ export default function JobList() {
                 </p>
               </div>
               <div className="flex gap-2 shrink-0 flex-wrap">
-                {(job.status === "queued" || job.status === "running") && (
+                {(job.status === "queued" || job.status === "rendering" || job.status === "running") && (
                   <>
                     <button onClick={() => copyWorkerPrompt(job)} className="btn-ghost text-sm" title="Copy the notebook-ready config block; marks running">
                       {copiedId === job.id ? "✅ Copied!" : "📋 Copy worker prompt"}
                     </button>
+                    <WorkerAssign job={job} jobs={jobs} workers={workers} />
                     <button
                       onClick={() => {
                         setAttachTarget(job.id);
