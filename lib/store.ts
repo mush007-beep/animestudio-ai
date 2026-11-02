@@ -51,7 +51,14 @@ export const KEYS = {
   scenes: "as_scenes",
   jobs: "as_jobs",
   videos: "as_videos",
+  projects: "as_projects",
+  episodes: "as_episodes",
+  projectScenes: "as_project_scenes",
+  workers: "as_workers",
 } as const;
+
+/** localStorage marker written once the series seed data has been created. */
+export const SEED_KEY = "as_series_seeded";
 
 /** Read an image <input> file as a data-URL for localStorage storage. */
 export function fileToDataUrl(file: File): Promise<string> {
